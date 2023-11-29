@@ -14,7 +14,7 @@ import ua.reed.geolocationapp.service.DistanceService;
 @RestController
 @RequestMapping("/api/locations")
 @RequiredArgsConstructor
-public class IPDistanceController {
+public class DistanceController {
 
     private final DistanceService distanceService;
 

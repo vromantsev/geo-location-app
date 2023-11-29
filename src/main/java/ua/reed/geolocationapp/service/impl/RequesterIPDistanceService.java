@@ -52,11 +52,9 @@ public class RequesterIPDistanceService implements DistanceService {
         Objects.requireNonNull(ipAddress, "Parameter [ipAddress] must not be null!");
         try (var client = new WebServiceClient.Builder(appProperties.getAccountId(), appProperties.getLicenseKey())
                 .host(appProperties.getHost())
-                .build()
-        ) {
+                .build()) {
             var inetAddress = InetAddress.getByName(ipAddress);
             var cityResponse = client.city(inetAddress);
-            log.debug(cityResponse.toJson());
             var city = cityResponse.getCity();
             var country = cityResponse.getCountry();
             var location = cityResponse.getLocation();
@@ -75,13 +73,8 @@ public class RequesterIPDistanceService implements DistanceService {
     }
 
     private GeoDistanceInfoDto calculateDistanceImKm(final GeoIPDto requesterLocation, final GeoIPDto machineLocation) {
-        double diffLat = Math.toRadians(machineLocation.latitude() - requesterLocation.latitude());
-        double diffLong = Math.toRadians(machineLocation.longitude() - requesterLocation.longitude());
-        double radiusStartLat = Math.toRadians(requesterLocation.latitude());
-        double radiusEndLat = Math.toRadians(machineLocation.latitude());
-        double a = Math.pow(Math.sin(diffLat / 2), 2) + Math.pow(Math.sin(diffLong / 2), 2) * Math.cos(radiusStartLat) * Math.cos(radiusEndLat);
-        double b = 2 * Math.asin(Math.sqrt(a));
-        double distanceInKm = EARTH_RADIUS_KM * b;
+        var haversineEquationResult = getHaversineEquationResult(requesterLocation, machineLocation);
+        var distanceInKm = EARTH_RADIUS_KM * haversineEquationResult;
         return GeoDistanceInfoDto.builder()
                 .requesterIp(requesterLocation.ipAddress())
                 .requesterCountry(requesterLocation.country())
@@ -91,5 +84,14 @@ public class RequesterIPDistanceService implements DistanceService {
                 .machineLocationCity(machineLocation.city())
                 .distanceToPhysicalMachineKm(BigDecimal.valueOf(distanceInKm).setScale(2, RoundingMode.HALF_UP))
                 .build();
+    }
+
+    private double getHaversineEquationResult(final GeoIPDto requesterLocation, final GeoIPDto machineLocation) {
+        var diffLat = Math.toRadians(machineLocation.latitude() - requesterLocation.latitude());
+        var diffLong = Math.toRadians(machineLocation.longitude() - requesterLocation.longitude());
+        var radiusStartLat = Math.toRadians(requesterLocation.latitude());
+        var radiusEndLat = Math.toRadians(machineLocation.latitude());
+        var haversineEquation = Math.pow(Math.sin(diffLat / 2), 2) + Math.pow(Math.sin(diffLong / 2), 2) * Math.cos(radiusStartLat) * Math.cos(radiusEndLat);
+        return 2 * Math.asin(Math.sqrt(haversineEquation));
     }
 }
