@@ -20,7 +20,7 @@ import java.util.Objects;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RequesterIPDistanceService implements DistanceService {
+public class SimpleDistanceService implements DistanceService {
 
     private static final String X_FORWARDED_FOR_HEADER = "X-Forwarded-For";
     private static final Double EARTH_RADIUS_KM = 6371.0;
