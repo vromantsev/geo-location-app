@@ -10,6 +10,6 @@ public interface DistanceService {
 
     GeoIPDto getLocation(final String ipAddress);
 
-    GeoDistanceInfoDto getDistanceToPhysicalMachineInKilometers(final HttpServletRequest request, final String machineIp);
+    GeoDistanceInfoDto getDistanceInKm(final HttpServletRequest request, final String machineIp);
 
 }

@@ -1,9 +1,9 @@
 package ua.reed.geolocationapp.service.impl;
 
 import com.maxmind.geoip2.WebServiceClient;
-import com.maxmind.geoip2.exception.GeoIp2Exception;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ua.reed.geolocationapp.config.AppProperties;
@@ -11,7 +11,6 @@ import ua.reed.geolocationapp.dto.GeoDistanceInfoDto;
 import ua.reed.geolocationapp.dto.GeoIPDto;
 import ua.reed.geolocationapp.service.DistanceService;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.InetAddress;
@@ -44,10 +43,11 @@ public class SimpleDistanceService implements DistanceService {
     }
 
     @Override
-    public GeoDistanceInfoDto getDistanceToPhysicalMachineInKilometers(final HttpServletRequest request, final String machineIp) {
-        return calculateDistanceImKm(getLocation(request), getLocation(machineIp));
+    public GeoDistanceInfoDto getDistanceInKm(final HttpServletRequest request, final String machineIp) {
+        return calculateDistanceInKm(getLocation(request), getLocation(machineIp));
     }
 
+    @SneakyThrows
     private GeoIPDto getLocationByIdAddress(final String ipAddress) {
         Objects.requireNonNull(ipAddress, "Parameter [ipAddress] must not be null!");
         try (var client = new WebServiceClient.Builder(appProperties.getAccountId(), appProperties.getLicenseKey())
@@ -55,33 +55,23 @@ public class SimpleDistanceService implements DistanceService {
                 .build()) {
             var inetAddress = InetAddress.getByName(ipAddress);
             var cityResponse = client.city(inetAddress);
-            var city = cityResponse.getCity();
-            var country = cityResponse.getCountry();
             var location = cityResponse.getLocation();
             var latitude = location.getLatitude();
             var longitude = location.getLongitude();
             return GeoIPDto.builder()
                     .ipAddress(ipAddress)
-                    .country(country.getName())
-                    .city(city.getName())
                     .latitude(latitude)
                     .longitude(longitude)
                     .build();
-        } catch (IOException | GeoIp2Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
-    private GeoDistanceInfoDto calculateDistanceImKm(final GeoIPDto requesterLocation, final GeoIPDto machineLocation) {
+    private GeoDistanceInfoDto calculateDistanceInKm(final GeoIPDto requesterLocation, final GeoIPDto machineLocation) {
         var haversineEquationResult = getHaversineEquationResult(requesterLocation, machineLocation);
         var distanceInKm = EARTH_RADIUS_KM * haversineEquationResult;
         return GeoDistanceInfoDto.builder()
                 .requesterIp(requesterLocation.ipAddress())
-                .requesterCountry(requesterLocation.country())
-                .requesterCity(requesterLocation.city())
                 .machineIp(machineLocation.ipAddress())
-                .machineLocationCountry(machineLocation.country())
-                .machineLocationCity(machineLocation.city())
                 .distanceToPhysicalMachineKm(BigDecimal.valueOf(distanceInKm).setScale(2, RoundingMode.HALF_UP))
                 .build();
     }

@@ -1,5 +1,4 @@
 geo-ip:
   host: geolite.info
-  account:
-    id: <your-maxmind-account-id>
-    license-key: <your-license-key>
+  account-id: <your-maxmind-account-id>
+  license-key: <your-license-key>

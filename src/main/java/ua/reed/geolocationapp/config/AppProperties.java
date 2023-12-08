@@ -1,20 +1,16 @@
 package ua.reed.geolocationapp.config;
 
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 @Getter
-@Configuration
+@Setter
+@Component
+@ConfigurationProperties(prefix = "geo-ip")
 public class AppProperties {
-
-    @Value("${geo-ip.host}")
     private String host;
-
-    @Value("${geo-ip.account.id}")
     private int accountId;
-
-    @Value("${geo-ip.account.license-key}")
     private String licenseKey;
-
 }

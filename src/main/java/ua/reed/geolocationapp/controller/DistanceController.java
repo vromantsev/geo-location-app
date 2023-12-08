@@ -37,6 +37,6 @@ public class DistanceController {
                                                           @RequestParam("machineIp") final String machineIp) {
         return ResponseEntity
                 .ok()
-                .body(distanceService.getDistanceToPhysicalMachineInKilometers(request, machineIp));
+                .body(distanceService.getDistanceInKm(request, machineIp));
     }
 }
